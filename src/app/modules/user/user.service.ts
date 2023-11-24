@@ -1,6 +1,7 @@
-import { TUser } from './user.instance';
+import { TOrder, TUser } from './user.instance';
 import { UserModel } from './user.model';
 
+// Create User
 const createUser = async (userData: TUser) => {
   if (await UserModel.isUserExist(userData.userId)) {
     throw new Error('User Already Exist');
@@ -9,6 +10,8 @@ const createUser = async (userData: TUser) => {
   const { password, ...rest } = result.toObject();
   return rest;
 };
+
+// Get All Users
 const getUsers = async () => {
   const result = await UserModel.find(
     {},
@@ -17,14 +20,13 @@ const getUsers = async () => {
   return result;
 };
 
+// Get Single User
 const getUser = async (userId: number) => {
   const existUser = await UserModel.isUserExist(userId);
-  //   if (!existUser) {
-  //     throw new Error('User not found!');
-  //   }
   return existUser;
 };
 
+// Update Single User
 const updateUser = async (userData: TUser) => {
   const existUser = await UserModel.isUserExist(userData.userId);
   if (!existUser) {
@@ -39,9 +41,86 @@ const updateUser = async (userData: TUser) => {
   return isUpdated ? { ...rest } : isUpdated;
 };
 
+// Delete Single User
+const deleteUser = async (userId: number) => {
+  const existUser = await UserModel.isUserExist(userId);
+  if (!existUser) {
+    throw new Error('User not found');
+  }
+  const result = await UserModel.deleteOne({ userId });
+  return result;
+};
+
+// Add New Order
+const addOrder = async (userId: number, orderData: TOrder) => {
+  const existUser = await UserModel.isUserExist(userId);
+  if (!existUser) {
+    throw new Error('User not found');
+  }
+  const result = await UserModel.updateOne(
+    { userId },
+    {
+      $addToSet: { orders: orderData },
+    },
+  );
+  return result;
+};
+
+// Get All Orders
+const getOrders = async (userId: number) => {
+  const existUser = await UserModel.isUserExist(userId);
+  if (!existUser) {
+    throw new Error('User not found');
+  }
+  const result = await UserModel.findOne({ userId }, { orders: 1 });
+  return result;
+};
+
+// Get Total Price
+const getTotalPrice = async (userId: number) => {
+  const existUser = await UserModel.isUserExist(userId);
+  if (!existUser) {
+    throw new Error('User not found');
+  }
+  const result = await UserModel.aggregate([
+    // stage-1: get specific user
+    {
+      $match: { userId },
+    },
+
+    //Stage-2: create array of document based on order doc.
+    {
+      $unwind: '$orders',
+    },
+
+    //stage-3: calculate individual order details
+    {
+      $project: {
+        total: {
+          $multiply: ['$orders.price', '$orders.quantity'],
+        },
+      },
+    },
+
+    //stage-4: Now calculate grand total of all orders
+    {
+      $group: {
+        _id: null,
+        totalPrice: { $sum: '$total' },
+      },
+    },
+  ]);
+
+  return result[0].totalPrice;
+};
+
 export const userServices = {
   createUser,
   getUsers,
   getUser,
   updateUser,
+  deleteUser,
+  addOrder,
+  getOrders,
+  getTotalPrice,
 };
