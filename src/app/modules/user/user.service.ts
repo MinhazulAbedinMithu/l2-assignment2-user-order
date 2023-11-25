@@ -109,6 +109,9 @@ const getTotalPrice = async (userId: number) => {
     },
   ]);
 
+  if (!result[0]) {
+    throw new Error('Orders is Empty');
+  }
   return result[0].totalPrice;
 };
 
