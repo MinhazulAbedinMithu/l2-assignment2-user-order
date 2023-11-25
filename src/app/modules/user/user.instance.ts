@@ -25,6 +25,7 @@ export type TUser = {
   hobbies: string[];
   address: TUserAddress;
   orders?: TOrder[];
+  isDeleted: boolean;
 };
 
 export interface IUserModel extends Model<TUser> {

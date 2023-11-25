@@ -96,6 +96,10 @@ const userSchema = new Schema<TUser, IUserModel>({
   orders: {
     type: [orderSchema],
   },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 userSchema.statics.isUserExist = async function (id: number) {
@@ -113,8 +117,18 @@ userSchema.pre('save', async function (next) {
   );
   next();
 });
-userSchema.post('save', async function (doc, next) {
+userSchema.post('save', function (doc, next) {
   doc.password = '';
+  next();
+});
+
+userSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+userSchema.pre('findOne', function (next) {
+  this.findOne({ isDeleted: { $ne: true } });
   next();
 });
 

@@ -47,7 +47,7 @@ const deleteUser = async (userId: number) => {
   if (!existUser) {
     throw new Error('User not found');
   }
-  const result = await UserModel.deleteOne({ userId });
+  const result = await UserModel.updateOne({ userId }, { isDeleted: true });
   return result;
 };
 
@@ -87,8 +87,6 @@ const getTotalPrice = async (userId: number) => {
     {
       $match: { userId },
     },
-
-    //Stage-2: create array of document based on order doc.
     {
       $unwind: '$orders',
     },
