@@ -46,14 +46,7 @@ const getUsers = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (err: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Something went wrong',
-      error: {
-        code: 500,
-        description: err[0]?.message || err?.message,
-      },
-    });
+    catchErrorHandler(err, res);
   }
 };
 

@@ -100,7 +100,7 @@ const getTotalPrice = async (userId: number) => {
       },
     },
 
-    //stage-4: Now calculate grand total of all orders
+    //stage-4: Now Calculate grand total of all Orders
     {
       $group: {
         _id: null,
